@@ -1,33 +1,34 @@
-require('dotenv').config()
-const PrivateKeyProvider = require('truffle-privatekey-provider')
+require('dotenv').config();
+require('babel-register');
+require('babel-polyfill');
+
 
 module.exports = {
-  solc: {
-    optimizer: {
-      enabled: true,
-      runs: 500
-    },
-
-    outputSelection: {
-      '*': {
-        '*': ['abi', 'evm.bytecode', 'evm.gasEstimates']
-      }
-    },
-  },
-
-  mocha: {
-    useColors: true,
-    ui: 'bdd',
-  },
-
   networks: {
-    rinkeby: {
-      provider: new PrivateKeyProvider(process.env.PRIVATE_KEY, "https://rinkeby.infura.io/"),
-      network_id: 4
+    development: {
+      host: 'localhost',
+      port: 8545,
+      network_id: '*', // eslint-disable-line camelcase
     },
-    mainnet: {
-      provider: new PrivateKeyProvider(process.env.PRIVATE_KEY, "https://mainnet.infura.io/"),
-      network_id: 1
-    }
+    coverage: {
+      host: 'localhost',
+      network_id: '*', // eslint-disable-line camelcase
+      port: 8555,
+      gas: 0xfffffffffff,
+      gasPrice: 0x01,
+    },
+    testrpc: {
+      host: 'localhost',
+      port: 8545,
+      network_id: '*', // eslint-disable-line camelcase
+    },
+    ganache: {
+      host: 'localhost',
+      port: 7545,
+      network_id: '*', // eslint-disable-line camelcase
+    },
   },
+  migrations_directory: './migrations'
 };
+
+
