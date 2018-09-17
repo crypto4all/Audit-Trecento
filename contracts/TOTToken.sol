@@ -19,16 +19,16 @@ contract TOTToken is ERC20, Pausable {
   uint256 public constant SHARE_BOUNTY = 50;
 
   // Wallets addresses
-  address public foundationAddress = 0x0;
-  address public teamAddress = 0x0;
-  address public bountyAddress = 0x0;
+  address public foundationAddress;
+  address public teamAddress;
+  address public bountyAddress;
 
-  uint256 totalSupply_ = 0;
+  uint256 private totalSupply_;
   uint256 public cap = 20000000 * 10 ** decimals; // Max cap 20.000.000 token
 
-  mapping(address => uint256) balances;
+  mapping(address => uint256) private balances;
 
-  mapping (address => mapping (address => uint256)) internal allowed;
+  mapping (address => mapping (address => uint256)) private allowed;
 
   bool public mintingFinished = false;
 
@@ -41,6 +41,12 @@ contract TOTToken is ERC20, Pausable {
     _;
   }
 
+  Constructor(address _foundationAddress, address _teamAddress, address _bountyAddress) {
+    foundationAddress = _foundationAddress;
+    teamAddress = _teamAddress;
+    bountyAddress = _bountyAddress;
+  }
+
   /**
     * @dev Change token name, Owner only.
     * @param _name The name of the token.
@@ -49,13 +55,20 @@ contract TOTToken is ERC20, Pausable {
     name = _name;
   }
 
+  /**
+    * @dev Change token symbol, Owner only.
+    * @param _symbol The symbol of the token.
+  */
+  function setSymbol(string _symbol) onlyOwner public {
+    symbol = _symbol;
+  }
+
   function setWallets(address _foundation, address _team, address _bounty) public onlyOwner canMint {
     require(_foundation != address(0) && _team != address(0) && _bounty != address(0));
     foundationAddress = _foundation;
     teamAddress = _team;
     bountyAddress = _bounty;
   }
-
   /**
     * @dev total number of tokens in existence
   */
@@ -175,6 +188,7 @@ contract TOTToken is ERC20, Pausable {
    * @return A boolean that indicates if the operation was successful.
    */
   function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
+    require(_amount != 0)
     require(totalSupply_.add(_amount) <= cap);
     require(_to != address(0));
     totalSupply_ = totalSupply_.add(_amount);
@@ -191,14 +205,13 @@ contract TOTToken is ERC20, Pausable {
   function finishMinting() onlyOwner canMint public returns (bool) {
 
     require(foundationAddress != address(0) && teamAddress != address(0) && bountyAddress != address(0));
-    require(SHARE_PURCHASERS + SHARE_FOUNDATION + SHARE_TEAM + SHARE_BOUNTY == 1000);
 
     // before calling this method totalSupply includes only purchased tokens
-    uint256 onePerThousand = totalSupply_ / SHARE_PURCHASERS; //ignore (totalSupply mod 617) ~= 616e-8,
+    uint256 onePerThousand = totalSupply_.div(SHARE_PURCHASERS); //ignore (totalSupply mod 617) ~= 616e-8,
 
-    uint256 foundationTokens = onePerThousand * SHARE_FOUNDATION;
-    uint256 teamTokens = onePerThousand * SHARE_TEAM;
-    uint256 bountyTokens = onePerThousand * SHARE_BOUNTY;
+    uint256 foundationTokens = onePerThousand.mul(SHARE_FOUNDATION);
+    uint256 teamTokens = onePerThousand.mul(SHARE_TEAM);
+    uint256 bountyTokens = onePerThousand.mul(SHARE_BOUNTY);
 
     mint(foundationAddress, foundationTokens);
     mint(teamAddress, teamTokens);
@@ -234,7 +247,7 @@ contract TOTToken is ERC20, Pausable {
   */
   function batchMint(address[] _data,uint256[] _amount) public onlyOwner canMint {
     for (uint i = 0; i < _data.length; i++) {
-	mint(_data[i],_amount[i]);
+	     mint(_data[i],_amount[i]);
     }
   }
 
