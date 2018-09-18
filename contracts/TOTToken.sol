@@ -41,7 +41,8 @@ contract TOTToken is ERC20, Pausable {
     _;
   }
 
-  Constructor(address _foundationAddress, address _teamAddress, address _bountyAddress) {
+  constructor(address _foundationAddress, address _teamAddress, address _bountyAddress) public {
+    require(_foundationAddress != address(0) && _teamAddress != address(0) && _bountyAddress != address(0));
     foundationAddress = _foundationAddress;
     teamAddress = _teamAddress;
     bountyAddress = _bountyAddress;
@@ -188,7 +189,7 @@ contract TOTToken is ERC20, Pausable {
    * @return A boolean that indicates if the operation was successful.
    */
   function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
-    require(_amount != 0)
+    require(_amount != 0);
     require(totalSupply_.add(_amount) <= cap);
     require(_to != address(0));
     totalSupply_ = totalSupply_.add(_amount);

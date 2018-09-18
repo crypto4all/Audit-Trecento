@@ -10,22 +10,22 @@ contract('TOTToken', function ([_, owner, recipient, anotherAccount]) {
     '0xc5fdf4076b8f3a5357c5e395ab970b5b54098fef',
     '0x821aea9a577a9b44299b9c15c88cf3087f3b5544'
   ];
-  
+
   const TOKEN_DECIMAL = 8;
   const MAX_TOKEN_SUPPLY = new BigNumber(20000000 * 10 ** TOKEN_DECIMAL);
 
 
 
   beforeEach(async function () {
-    this.token = await TOTToken.new({ from: owner });
+    this.token = await TOTToken.new('0xBa893462c1b714bFD801e918a4541e056f9bd924','0x2418C46F2FA422fE8Cd0BF56Df5e27CbDeBB2590','0x84bE27E1d3AeD5e6CF40445891d3e2AB7d3d98e8',{ from: owner });
   });
 
-  describe('mint', function () {  
+  describe('mint', function () {
     it('should start with the correct cap', async function () {
       let _cap = await this.token.cap();
       assert(MAX_TOKEN_SUPPLY.eq(_cap));
     });
-    
+
     it('should fail to mint if not owner', async function () {
       await assertRevert(this.token.mint(owner, 100, { from: anotherAccount }));
     });
@@ -55,15 +55,17 @@ contract('TOTToken', function ([_, owner, recipient, anotherAccount]) {
   describe('finishMinting', function () {
     const PURCHASER_AMOUNT = new BigNumber(10000000 * 10 ** TOKEN_DECIMAL);
     const ONE_PER_THOUSAND = PURCHASER_AMOUNT.dividedToIntegerBy(750);
+/*
     it('should revert when finishMinting when wallets are not set', async function () {
       await this.token.mint(owner, PURCHASER_AMOUNT, { from: owner });
       await assertRevert(this.token.finishMinting({ from: owner }));
     });
+*/
     it('should allocate Foundation, Team and Bounty ', async function () {
       await this.token.mint(owner, PURCHASER_AMOUNT, { from: owner });
-      await this.token.setWallets('0xBa893462c1b714bFD801e918a4541e056f9bd924', '0x2418C46F2FA422fE8Cd0BF56Df5e27CbDeBB2590', '0x84bE27E1d3AeD5e6CF40445891d3e2AB7d3d98e8',{ from: owner });
+      //await this.token.setWallets('0xBa893462c1b714bFD801e918a4541e056f9bd924', '0x2418C46F2FA422fE8Cd0BF56Df5e27CbDeBB2590', '0x84bE27E1d3AeD5e6CF40445891d3e2AB7d3d98e8',{ from: owner });
       await this.token.finishMinting({ from: owner });
-      let bountyBalance = await this.token.balanceOf('0x84bE27E1d3AeD5e6CF40445891d3e2AB7d3d98e8');  
+      let bountyBalance = await this.token.balanceOf('0x84bE27E1d3AeD5e6CF40445891d3e2AB7d3d98e8');
       assert(bountyBalance.eq(ONE_PER_THOUSAND.mul(50)));
 
       let foundationBalance = await this.token.balanceOf('0xBa893462c1b714bFD801e918a4541e056f9bd924');
@@ -76,7 +78,7 @@ contract('TOTToken', function ([_, owner, recipient, anotherAccount]) {
     });
     it('should revert when minting after finishMinting ', async function () {
       await this.token.mint(owner, PURCHASER_AMOUNT, { from: owner });
-      await this.token.setWallets('0xBa893462c1b714bFD801e918a4541e056f9bd924', '0x2418C46F2FA422fE8Cd0BF56Df5e27CbDeBB2590', '0x84bE27E1d3AeD5e6CF40445891d3e2AB7d3d98e8',{ from: owner });
+      //await this.token.setWallets('0xBa893462c1b714bFD801e918a4541e056f9bd924', '0x2418C46F2FA422fE8Cd0BF56Df5e27CbDeBB2590', '0x84bE27E1d3AeD5e6CF40445891d3e2AB7d3d98e8',{ from: owner });
       await this.token.finishMinting({ from: owner });
       await assertRevert(this.token.mint(owner, 1));
     });
@@ -123,7 +125,7 @@ contract('TOTToken', function ([_, owner, recipient, anotherAccount]) {
       describe('when the sender does not have enough balance', function () {
         const amount = MAX_TOKEN_SUPPLY.plus(1);
 
-        it('reverts', async function () {	  
+        it('reverts', async function () {
           await assertRevert(this.token.transfer(to, amount, { from: owner }));
         });
       });
@@ -180,7 +182,7 @@ contract('TOTToken', function ([_, owner, recipient, anotherAccount]) {
         ];
 
         it('mints the requested amount', async function () {
-          
+
           await this.token.batchMint(batchListAccount, batchListAmount, { from: owner });
 
           const totalSupply = await this.token.totalSupply();
@@ -193,7 +195,7 @@ contract('TOTToken', function ([_, owner, recipient, anotherAccount]) {
           assert.equal(recipientBalance2, batchListAmount[1]);
 
           const recipientBalance3 = await this.token.balanceOf(batchListAccount[2]);
-          assert.equal(recipientBalance3, batchListAmount[2]);          
+          assert.equal(recipientBalance3, batchListAmount[2]);
         });
 
         it('emits the Mint and Transfer events', async function () {
@@ -223,14 +225,14 @@ contract('TOTToken', function ([_, owner, recipient, anotherAccount]) {
     });
 
     describe('when 50 recipient ', function () {
-            
+
       let batch50Account = [50];
       for (var i = 0; i < 50; i++) {
         let address = '0x2bdd21761a483f71054e14f5b827213567971c' + (i + 16).toString(16);
         batch50Account[i] = address;
       }
       let batchListAmount = [50];
-      for (var i = 0; i < 50; i++) {        
+      for (var i = 0; i < 50; i++) {
         batchListAmount[i] = 100 * 10 ** TOKEN_DECIMAL;
       }
 
@@ -238,21 +240,21 @@ contract('TOTToken', function ([_, owner, recipient, anotherAccount]) {
 
         await this.token.batchMint(batch50Account, batchListAmount, { from: owner });
         for (var i = 0; i < batch50Account.length; i++) {
-          const tokenBalance = await this.token.balanceOf(batch50Account[i]);          
+          const tokenBalance = await this.token.balanceOf(batch50Account[i]);
           assert.equal(tokenBalance, 100 * 10 ** TOKEN_DECIMAL);
         }
       });
     });
 
     describe('when 100 recipient ', function () {
-            
+
       let batch100Account = [100];
       for (var i = 0; i < 100; i++) {
         let address = '0x2bdd21761a483f71054e14f5b827213567971c' + (i + 16).toString(16);
         batch100Account[i] = address;
       }
       let batchListAmount = [100];
-      for (var i = 0; i < 100; i++) {        
+      for (var i = 0; i < 100; i++) {
         batchListAmount[i] = 100 * 10 ** TOKEN_DECIMAL;
       }
 
@@ -260,7 +262,7 @@ contract('TOTToken', function ([_, owner, recipient, anotherAccount]) {
 
         await this.token.batchMint(batch100Account, batchListAmount, { from: owner });
         for (var i = 0; i < batch100Account.length; i++) {
-          const tokenBalance = await this.token.balanceOf(batch100Account[i]);          
+          const tokenBalance = await this.token.balanceOf(batch100Account[i]);
           assert.equal(tokenBalance, 100 * 10 ** TOKEN_DECIMAL);
         }
       });
