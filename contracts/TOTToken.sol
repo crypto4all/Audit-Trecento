@@ -189,7 +189,7 @@ contract TOTToken is ERC20, Pausable {
    * @return A boolean that indicates if the operation was successful.
    */
   function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
-    require(_amount != 0);
+    require(_amount > 0);
     require(totalSupply_.add(_amount) <= cap);
     require(_to != address(0));
     totalSupply_ = totalSupply_.add(_amount);
@@ -204,8 +204,6 @@ contract TOTToken is ERC20, Pausable {
    * @return True if the operation was successful.
    */
   function finishMinting() onlyOwner canMint public returns (bool) {
-
-    require(foundationAddress != address(0) && teamAddress != address(0) && bountyAddress != address(0));
 
     // before calling this method totalSupply includes only purchased tokens
     uint256 onePerThousand = totalSupply_.div(SHARE_PURCHASERS); //ignore (totalSupply mod 617) ~= 616e-8,
