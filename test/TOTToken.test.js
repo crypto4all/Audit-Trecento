@@ -20,6 +20,11 @@ contract('TOTToken', function ([_, owner, recipient, anotherAccount]) {
     this.token = await TOTToken.new('0xBa893462c1b714bFD801e918a4541e056f9bd924','0x2418C46F2FA422fE8Cd0BF56Df5e27CbDeBB2590','0x84bE27E1d3AeD5e6CF40445891d3e2AB7d3d98e8',{ from: owner });
   });
 
+  describe('constructor', function () {
+    it('should revert when creating token with wallets addresses equals to zero', async function () {
+      await assertRevert(TOTToken.new('0x0','0x0','0x0',{ from: owner }));
+    });
+  });
   describe('mint', function () {
     it('should start with the correct cap', async function () {
       let _cap = await this.token.cap();
