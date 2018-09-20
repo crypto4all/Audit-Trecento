@@ -68,7 +68,7 @@ contract('TOTToken', function ([_, owner, recipient, anotherAccount]) {
 */
     it('should allocate Foundation, Team and Bounty ', async function () {
       await this.token.mint(owner, PURCHASER_AMOUNT, { from: owner });
-      //await this.token.setWallets('0xBa893462c1b714bFD801e918a4541e056f9bd924', '0x2418C46F2FA422fE8Cd0BF56Df5e27CbDeBB2590', '0x84bE27E1d3AeD5e6CF40445891d3e2AB7d3d98e8',{ from: owner });
+      //await this.token.updateWallets('0xBa893462c1b714bFD801e918a4541e056f9bd924', '0x2418C46F2FA422fE8Cd0BF56Df5e27CbDeBB2590', '0x84bE27E1d3AeD5e6CF40445891d3e2AB7d3d98e8',{ from: owner });
       await this.token.finishMinting({ from: owner });
       let bountyBalance = await this.token.balanceOf('0x84bE27E1d3AeD5e6CF40445891d3e2AB7d3d98e8');
       assert(bountyBalance.eq(ONE_PER_THOUSAND.mul(50)));
@@ -83,7 +83,7 @@ contract('TOTToken', function ([_, owner, recipient, anotherAccount]) {
     });
     it('should revert when minting after finishMinting ', async function () {
       await this.token.mint(owner, PURCHASER_AMOUNT, { from: owner });
-      //await this.token.setWallets('0xBa893462c1b714bFD801e918a4541e056f9bd924', '0x2418C46F2FA422fE8Cd0BF56Df5e27CbDeBB2590', '0x84bE27E1d3AeD5e6CF40445891d3e2AB7d3d98e8',{ from: owner });
+      //await this.token.updateWallets('0xBa893462c1b714bFD801e918a4541e056f9bd924', '0x2418C46F2FA422fE8Cd0BF56Df5e27CbDeBB2590', '0x84bE27E1d3AeD5e6CF40445891d3e2AB7d3d98e8',{ from: owner });
       await this.token.finishMinting({ from: owner });
       await assertRevert(this.token.mint(owner, 1));
     });

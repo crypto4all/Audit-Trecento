@@ -64,7 +64,7 @@ contract TOTToken is ERC20, Pausable {
     symbol = _symbol;
   }
 
-  function setWallets(address _foundation, address _team, address _bounty) public onlyOwner canMint {
+  function updateWallets(address _foundation, address _team, address _bounty) public onlyOwner canMint {
     require(_foundation != address(0) && _team != address(0) && _bounty != address(0));
     foundationAddress = _foundation;
     teamAddress = _team;
@@ -211,7 +211,7 @@ contract TOTToken is ERC20, Pausable {
     uint256 foundationTokens = onePerThousand.mul(SHARE_FOUNDATION);
     uint256 teamTokens = onePerThousand.mul(SHARE_TEAM);
     uint256 bountyTokens = onePerThousand.mul(SHARE_BOUNTY);
-
+    require (balanceOf(foundationAddress) == 0 && balanceOf(teamAddress) == 0 && balanceOf(bountyAddress) == 0);
     mint(foundationAddress, foundationTokens);
     mint(teamAddress, teamTokens);
     mint(bountyAddress, bountyTokens);
