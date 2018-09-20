@@ -29,6 +29,5 @@ module.exports = {
     },
   },
   migrations_directory: './migrations'
+
 };
-
-

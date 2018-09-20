@@ -1,159 +1,12 @@
-pragma solidity ^0.4.23;
-
-
-/**
- * @title SafeMath
- * @dev Math operations (only add and sub here) with safety checks that throw on error
- */
-library SafeMath {
-
-  /**
-  * @dev Multiplies two numbers, throws on overflow.
-  */
-  function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-    if (a == 0) {
-      return 0;
-    }
-    uint256 c = a * b;
-    assert(c / a == b);
-    return c;
-  }
-
-  /**
-  * @dev Integer division of two numbers, truncating the quotient.
-  */
-  function div(uint256 a, uint256 b) internal pure returns (uint256) {
-    // assert(b > 0); // Solidity automatically throws when dividing by 0
-    uint256 c = a / b;
-    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
-    return c;
-  }
-
-  /**
-  * @dev Substracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
-  */
-  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-    assert(b <= a);
-    return a - b;
-  }
-
-  /**
-  * @dev Adds two numbers, throws on overflow.
-  */
-  function add(uint256 a, uint256 b) internal pure returns (uint256) {
-    uint256 c = a + b;
-    assert(c >= a);
-    return c;
-  }
-}
-
-/**
- * @title Ownable
- * @dev The Ownable contract has an owner address, and provides basic authorization control
- * functions, this simplifies the implementation of "user permissions".
- */
-contract Ownable {
-  address public owner;
-
-
-  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-
-  /**
-   * @dev The Ownable constructor sets the original `owner` of the contract to the sender
-   * account.
-   */
-  constructor() public {
-    owner = msg.sender;
-  }
-
-  /**
-   * @dev Throws if called by any account other than the owner.
-   */
-  modifier onlyOwner() {
-    require(msg.sender == owner);
-    _;
-  }
-
-  /**
-   * @dev Allows the current owner to transfer control of the contract to a newOwner.
-   * @param newOwner The address to transfer ownership to.
-   */
-  function transferOwnership(address newOwner) public onlyOwner {
-    require(newOwner != address(0));
-    emit OwnershipTransferred(owner, newOwner);
-    owner = newOwner;
-  }
-
-}
-
-
-/**
- * @title Pausable
- * @dev Base contract which allows children to implement an emergency stop mechanism.
- */
-contract Pausable is Ownable {
-  event Pause();
-  event Unpause();
-
-  bool public paused = false;
-
-
-  /**
-   * @dev Modifier to make a function callable only when the contract is not paused.
-   */
-  modifier whenNotPaused() {
-    require(!paused);
-    _;
-  }
-
-  /**
-   * @dev Modifier to make a function callable only when the contract is paused.
-   */
-  modifier whenPaused() {
-    require(paused);
-    _;
-  }
-
-  /**
-   * @dev called by the owner to pause, triggers stopped state
-   */
-  function pause() onlyOwner whenNotPaused public {
-    paused = true;
-    emit Pause();
-  }
-
-  /**
-   * @dev called by the owner to unpause, returns to normal state
-   */
-  function unpause() onlyOwner whenPaused public {
-    paused = false;
-    emit Unpause();
-  }
-}
-
-
-/**
- * @title ERC20 interface
- * @dev see https://github.com/ethereum/EIPs/issues/20
- */
-contract ERC20 {
-  function totalSupply() public view returns (uint256);
-  function balanceOf(address who) public view returns (uint256);
-  function transfer(address to, uint256 value) public returns (bool);
-  function allowance(address owner, address spender) public view returns (uint256);
-  function transferFrom(address from, address to, uint256 value) public returns (bool);
-  function approve(address spender, uint256 value) public returns (bool);
-  
-  event Transfer(address indexed from, address indexed to, uint256 value);
-  event Approval(address indexed owner, address indexed spender, uint256 value);
-}
-
+pragma solidity ^0.4.24;
+import "./ERC20.sol";
+import "./Pausable.sol";
+import "./SafeMath.sol";
 
 contract TOTToken is ERC20, Pausable {
 
   using SafeMath for uint256;
-    
+
   string public name = "Trecento";      //  token name
   string public symbol = "TOT";           //  token symbol
   uint256 public decimals = 8;            //  token digit
@@ -166,16 +19,16 @@ contract TOTToken is ERC20, Pausable {
   uint256 public constant SHARE_BOUNTY = 50;
 
   // Wallets addresses
-  address public foundationAddress = 0x0;
-  address public teamAddress = 0x0;
-  address public bountyAddress = 0x0;
+  address public foundationAddress;
+  address public teamAddress;
+  address public bountyAddress;
 
-  uint256 totalSupply_ = 0;
+  uint256 private totalSupply_;
   uint256 public cap = 20000000 * 10 ** decimals; // Max cap 20.000.000 token
 
-  mapping(address => uint256) balances;
-  
-  mapping (address => mapping (address => uint256)) internal allowed;
+  mapping(address => uint256) private balances;
+
+  mapping (address => mapping (address => uint256)) private allowed;
 
   bool public mintingFinished = false;
 
@@ -188,6 +41,13 @@ contract TOTToken is ERC20, Pausable {
     _;
   }
 
+  constructor(address _foundationAddress, address _teamAddress, address _bountyAddress) public {
+    require(_foundationAddress != address(0) && _teamAddress != address(0) && _bountyAddress != address(0));
+    foundationAddress = _foundationAddress;
+    teamAddress = _teamAddress;
+    bountyAddress = _bountyAddress;
+  }
+
   /**
     * @dev Change token name, Owner only.
     * @param _name The name of the token.
@@ -195,21 +55,28 @@ contract TOTToken is ERC20, Pausable {
   function setName(string _name) onlyOwner public {
     name = _name;
   }
-  
-  function setWallets(address _foundation, address _team, address _bounty) public onlyOwner canMint {
+
+  /**
+    * @dev Change token symbol, Owner only.
+    * @param _symbol The symbol of the token.
+  */
+  function setSymbol(string _symbol) onlyOwner public {
+    symbol = _symbol;
+  }
+
+  function updateWallets(address _foundation, address _team, address _bounty) public onlyOwner canMint {
     require(_foundation != address(0) && _team != address(0) && _bounty != address(0));
     foundationAddress = _foundation;
     teamAddress = _team;
     bountyAddress = _bounty;
-  } 
-  
+  }
   /**
     * @dev total number of tokens in existence
   */
   function totalSupply() public view returns (uint256) {
     return totalSupply_;
   }
-  
+
   /**
     * @dev Gets the balance of the specified address.
     * @param _owner The address to query the the balance of.
@@ -218,7 +85,7 @@ contract TOTToken is ERC20, Pausable {
   function balanceOf(address _owner) public view returns (uint256 balance) {
     return balances[_owner];
   }
-  
+
   /**
     * @dev transfer token for a specified address
     * @param _to The address to transfer to.
@@ -233,7 +100,7 @@ contract TOTToken is ERC20, Pausable {
     emit Transfer(msg.sender, _to, _value);
     return true;
   }
-  
+
   /**
     * @dev Transfer tokens from one address to another
     * @param _from address The address which you want to send tokens from
@@ -322,6 +189,7 @@ contract TOTToken is ERC20, Pausable {
    * @return A boolean that indicates if the operation was successful.
    */
   function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
+    require(_amount > 0);
     require(totalSupply_.add(_amount) <= cap);
     require(_to != address(0));
     totalSupply_ = totalSupply_.add(_amount);
@@ -337,20 +205,17 @@ contract TOTToken is ERC20, Pausable {
    */
   function finishMinting() onlyOwner canMint public returns (bool) {
 
-    require(foundationAddress != address(0) && teamAddress != address(0) && bountyAddress != address(0));
-    require(SHARE_PURCHASERS + SHARE_FOUNDATION + SHARE_TEAM + SHARE_BOUNTY == 1000);
-    
     // before calling this method totalSupply includes only purchased tokens
-    uint256 onePerThousand = totalSupply_ / SHARE_PURCHASERS; //ignore (totalSupply mod 617) ~= 616e-8,
-    
-    uint256 foundationTokens = onePerThousand * SHARE_FOUNDATION;             
-    uint256 teamTokens = onePerThousand * SHARE_TEAM;   
-    uint256 bountyTokens = onePerThousand * SHARE_BOUNTY;
-      
+    uint256 onePerThousand = totalSupply_.div(SHARE_PURCHASERS); //ignore (totalSupply mod 617) ~= 616e-8,
+
+    uint256 foundationTokens = onePerThousand.mul(SHARE_FOUNDATION);
+    uint256 teamTokens = onePerThousand.mul(SHARE_TEAM);
+    uint256 bountyTokens = onePerThousand.mul(SHARE_BOUNTY);
+    require (balanceOf(foundationAddress) == 0 && balanceOf(teamAddress) == 0 && balanceOf(bountyAddress) == 0);
     mint(foundationAddress, foundationTokens);
     mint(teamAddress, teamTokens);
     mint(bountyAddress, bountyTokens);
-  
+
     mintingFinished = true;
     emit MintFinished();
     return true;
@@ -372,7 +237,7 @@ contract TOTToken is ERC20, Pausable {
     emit Burn(burner, _value);
     emit Transfer(burner, address(0), _value);
   }
-  
+
 
   /**
     * @dev This is an especial owner-only function to make massive tokens minting.
@@ -381,9 +246,9 @@ contract TOTToken is ERC20, Pausable {
   */
   function batchMint(address[] _data,uint256[] _amount) public onlyOwner canMint {
     for (uint i = 0; i < _data.length; i++) {
-	mint(_data[i],_amount[i]);
+	     mint(_data[i],_amount[i]);
     }
   }
-  
+
 
 }
