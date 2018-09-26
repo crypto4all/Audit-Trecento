@@ -24,6 +24,11 @@ contract TOTToken is ERC20, Pausable {
   address public bountyAddress;
 
   uint256 private totalSupply_;
+  uint256 public vestedTokens;
+  uint256 public releasedTokens;
+
+  uint256 public startVesting;
+
   uint256 public cap = 20000000 * 10 ** decimals; // Max cap 20.000.000 token
 
   mapping(address => uint256) private balances;
@@ -211,13 +216,16 @@ contract TOTToken is ERC20, Pausable {
     uint256 foundationTokens = total.mul(SHARE_FOUNDATION).div(100);
     uint256 teamTokens = total.mul(SHARE_TEAM).div(100);
     uint256 bountyTokens = total.mul(SHARE_BOUNTY).div(100);
-    require (balanceOf(foundationAddress) == 0 && balanceOf(teamAddress) == 0 && balanceOf(bountyAddress) == 0);
+    require (balanceOf(foundationAddress) == 0 && balanceOf(address(this)) == 0 && balanceOf(bountyAddress) == 0);
     mint(foundationAddress, foundationTokens);
-    mint(teamAddress, teamTokens);
+    mint(address(this), teamTokens);
     mint(bountyAddress, bountyTokens);
 
+    vestedTokens = teamTokens;
     mintingFinished = true;
     emit MintFinished();
+
+    startVesting = now;
     return true;
   }
 
@@ -250,5 +258,34 @@ contract TOTToken is ERC20, Pausable {
     }
   }
 
+  function tokensRelease() public onlyOwner {
+    require(mintingFinished);
+    require(vestedTokens > releasedTokens);
+
+    uint256 period1 = startVesting.add(24 weeks);
+    uint256 period2 = period1.add(24 weeks);
+    uint256 period3 = period2.add(24 weeks);
+    uint256 period4 = period3.add(24 weeks);
+    uint256 tokensTorelease = vestedTokens.mul(25).div(100);
+    uint256 withdrawableAmount;
+
+    if(now <= period1){
+      withdrawableAmount = tokensTorelease.sub(releasedTokens);
+      address(this).transfer(teamAddress,withdrawableAmount);
+      releasedTokens = withdrawableAmount;
+    }else if(now <= period2){
+      withdrawableAmount = (tokensTorelease.mul(2)).sub(releasedTokens);
+      address(this).transfer(teamAddress,withdrawableAmount);
+      releasedTokens = withdrawableAmount;
+    }else if(now <= period3){
+      withdrawableAmount = (tokensTorelease.mul(3)).sub(releasedTokens);
+      address(this).transfer(teamAddress,withdrawableAmount);
+      releasedTokens = withdrawableAmount;
+    }else{
+      withdrawableAmount = (tokensTorelease.mul(4)).sub(releasedTokens);
+      address(this).transfer(teamAddress,withdrawableAmount);
+      releasedTokens = withdrawableAmount;
+    }
+  }
 
 }
