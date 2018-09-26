@@ -9,14 +9,14 @@ contract TOTToken is ERC20, Pausable {
 
   string public name = "Trecento";      //  token name
   string public symbol = "TOT";           //  token symbol
-  uint256 public decimals = 8;            //  token digit
+  uint256 public decimals = 18;            //  token digit
 
 
   // Token distribution, must sumup to 1000
-  uint256 public constant SHARE_PURCHASERS = 750;
-  uint256 public constant SHARE_FOUNDATION = 50;
-  uint256 public constant SHARE_TEAM = 150;
-  uint256 public constant SHARE_BOUNTY = 50;
+  uint256 public constant SHARE_PURCHASERS = 75;
+  uint256 public constant SHARE_FOUNDATION = 5;
+  uint256 public constant SHARE_TEAM = 15;
+  uint256 public constant SHARE_BOUNTY = 5;
 
   // Wallets addresses
   address public foundationAddress;
@@ -206,11 +206,11 @@ contract TOTToken is ERC20, Pausable {
   function finishMinting() onlyOwner canMint public returns (bool) {
 
     // before calling this method totalSupply includes only purchased tokens
-    uint256 onePerThousand = totalSupply_.div(SHARE_PURCHASERS); //ignore (totalSupply mod 617) ~= 616e-8,
+    uint256 total = totalSupply_.mul(100).div(SHARE_PURCHASERS); //ignore (totalSupply mod 617) ~= 616e-8,
 
-    uint256 foundationTokens = onePerThousand.mul(SHARE_FOUNDATION);
-    uint256 teamTokens = onePerThousand.mul(SHARE_TEAM);
-    uint256 bountyTokens = onePerThousand.mul(SHARE_BOUNTY);
+    uint256 foundationTokens = total.mul(SHARE_FOUNDATION).div(100);
+    uint256 teamTokens = total.mul(SHARE_TEAM).div(100);
+    uint256 bountyTokens = total.mul(SHARE_BOUNTY).div(100);
     require (balanceOf(foundationAddress) == 0 && balanceOf(teamAddress) == 0 && balanceOf(bountyAddress) == 0);
     mint(foundationAddress, foundationTokens);
     mint(teamAddress, teamTokens);
