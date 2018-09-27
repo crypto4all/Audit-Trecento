@@ -19,8 +19,6 @@ contract Distribute is Ownable{
   address public teamAddress;
   address public bountyAddress;
 
-  bool public mintingFinished = false;
-
   // Versting
   uint256 public releasedTokens;
   uint256 public startVesting;
@@ -33,7 +31,7 @@ contract Distribute is Ownable{
   bool public distributed_round3 = false;
   bool public distributed_round4 = false;
 
-  constructor(address _token ;address _foundationAddress, address _teamAddress, address _bountyAddress) public {
+  constructor(address _token, address _foundationAddress, address _teamAddress, address _bountyAddress) public {
     require(_token != address(0) && _foundationAddress != address(0) && _teamAddress != address(0) && _bountyAddress != address(0));
     token = TOTToken(_token);
     foundationAddress = _foundationAddress;
@@ -41,7 +39,8 @@ contract Distribute is Ownable{
     bountyAddress = _bountyAddress;
   }
 
-  function updateWallets(address _foundation, address _team, address _bounty) public onlyOwner canMint {
+  function updateWallets(address _foundation, address _team, address _bounty) public onlyOwner {
+    require(!token.mintingFinished());
     require(_foundation != address(0) && _team != address(0) && _bounty != address(0));
     foundationAddress = _foundation;
     teamAddress = _team;
@@ -52,7 +51,7 @@ contract Distribute is Ownable{
    * @dev Function to stop minting new tokens.
    * @return True if the operation was successful.
    */
-  function finishMinting() onlyOwner canMint public returns (bool) {
+  function finishMinting() onlyOwner  public returns (bool) {
 
     // before calling this method totalSupply includes only purchased tokens
     uint256 total = totalSupply_.mul(100).div(SHARE_PURCHASERS); //ignore (totalSupply mod 617) ~= 616e-8,
@@ -65,8 +64,7 @@ contract Distribute is Ownable{
     token.mint(address(this), teamTokens);
     token.mint(bountyAddress, bountyTokens);
     tokensTorelease = teamTokens.mul(25).div(100);
-    mintingFinished = true;
-    emit MintFinished();
+    token.finishMinting();
 
     startVesting = now;
     return true;
@@ -84,7 +82,7 @@ contract Distribute is Ownable{
 
 
     function TeamtokenRealease1 ()public onlyOwner {
-       require((mintingFinished) && (!distributed_round1));
+       require(token.mintingFinished() && !distributed_round1);
     	 require (now >= period1);
        token.transfer(teamAddress,tokensTorelease);
     	 releasedTokens=tokensTorelease;
@@ -92,7 +90,7 @@ contract Distribute is Ownable{
     	}
 
     function TeamtokenRealease2 ()public onlyOwner {
-       require(mintingFinished) && (distributed_round1) && (!distributed_round2);
+       require(token.mintingFinished() && distributed_round1 && !distributed_round2);
     	 require (now >= period2);
     	 token.transfer(teamAddress,tokensTorelease);
     	 releasedTokens=releasedTokens.add(tokensTorelease);
@@ -100,7 +98,7 @@ contract Distribute is Ownable{
      }
 
    function TeamtokenRealease3 ()public onlyOwner {
-       require(mintingFinished) && (distributed_round2) && (!distributed_round3);
+       require(token.mintingFinished() && distributed_round2 && !distributed_round3);
     	 require (now >= period3);
     	 token.transfer(teamAddress,tokensTorelease);
     	 releasedTokens = releasedTokens.add(tokensTorelease);
@@ -108,7 +106,7 @@ contract Distribute is Ownable{
      }
 
    function TeamtokenRealease4 ()public onlyOwner {
-       require(mintingFinished) && (distributed_round3) && (!distributed_round4);
+       require(token.mintingFinished() && distributed_round3 && !distributed_round4);
     	 require (now >= period4);
     	 token.transfer(teamAddress,tokensTorelease);
     	 releasedTokens=releasedTokens.add(tokensTorelease);

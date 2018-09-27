@@ -15,7 +15,7 @@ contract TOTToken is ERC20, Pausable {
 
 
   uint256 private totalSupply_;
-
+  bool public mintingFinished = false;
 
   uint256 public cap = 20000000 * 10 ** decimals; // Max cap 20.000.000 token
 
@@ -181,6 +181,16 @@ contract TOTToken is ERC20, Pausable {
     emit Transfer(address(0), _to, _amount);
     return true;
   }
+
+  /**
+ * @dev Function to stop minting new tokens.
+ * @return True if the operation was successful.
+ */
+function finishMinting() onlyOwner canMint public returns (bool) {
+  mintingFinished = true;
+  emit MintFinished();
+  return true;
+}
 
 
 
