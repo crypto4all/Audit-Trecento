@@ -265,23 +265,24 @@ contract TOTToken is ERC20, Pausable {
     uint256 period1 = startVesting.add(24 weeks);
     uint256 period2 = startVesting.add(48 weeks);
     uint256 period3 = startVesting.add(72 weeks);
+    uint256 period4 = startVesting.add(96 weeks);
 
     uint256 tokensTorelease = vestedTokens.mul(25).div(100);
     uint256 withdrawableAmount;
 
-    if(now <= period1){
+    if(now >= period1){
       withdrawableAmount = tokensTorelease.sub(releasedTokens);
       transfer(teamAddress,withdrawableAmount);
       releasedTokens = withdrawableAmount;
-    }else if(now <= period2){
+    }else if(now >= period2){
       withdrawableAmount = (tokensTorelease.mul(2)).sub(releasedTokens);
       transfer(teamAddress,withdrawableAmount);
       releasedTokens = withdrawableAmount;
-    }else if(now <= period3){
+    }else if(now >= period3){
       withdrawableAmount = (tokensTorelease.mul(3)).sub(releasedTokens);
       transfer(teamAddress,withdrawableAmount);
       releasedTokens = withdrawableAmount;
-    }else{
+    }else if (now >= period4){
       withdrawableAmount = (tokensTorelease.mul(4)).sub(releasedTokens);
       transfer(teamAddress,withdrawableAmount);
       releasedTokens = withdrawableAmount;
