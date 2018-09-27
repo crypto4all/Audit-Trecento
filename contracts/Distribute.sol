@@ -1,8 +1,10 @@
 pragma solidity ^0.4.24;
 import "./TOTToken.sol";
 import "./SafeMath.sol";
+import "./Ownable.sol";
 
-contract Distribute {
+
+contract Distribute is Ownable{
 
   using SafeMath for uint256;
   // Token distribution, must sumup to 1000
@@ -22,7 +24,6 @@ contract Distribute {
   // Versting
   uint256 public releasedTokens;
   uint256 public startVesting;
-  bool public vestingFinished = false;
   uint256 public period1 = startVesting.add(24 weeks);
 	uint256 public period2 = startVesting.add(48 weeks);
 	uint256 public period3 = startVesting.add(72 weeks);
@@ -91,26 +92,25 @@ contract Distribute {
     	}
 
     function TeamtokenRealease2 ()public onlyOwner {
-       require(mintingFinished) && (ditributed_round1) && (!distributed_round2);
-    	 require (balanceOf(address(this)) > tokensTorelease);
+       require(mintingFinished) && (distributed_round1) && (!distributed_round2);
     	 require (now >= period2);
-    	 transfer(teamAddress,tokensTorelease);
+    	 token.transfer(teamAddress,tokensTorelease);
     	 releasedTokens=releasedTokens.add(tokensTorelease);
     	 distributed_round2=true;
      }
 
    function TeamtokenRealease3 ()public onlyOwner {
-       require(mintingFinished) && (ditributed_round2) && (!distributed_round3);
+       require(mintingFinished) && (distributed_round2) && (!distributed_round3);
     	 require (now >= period3);
-    	 transfer(teamAddress,tokensTorelease);
+    	 token.transfer(teamAddress,tokensTorelease);
     	 releasedTokens = releasedTokens.add(tokensTorelease);
     	 distributed_round3 = true;
      }
 
    function TeamtokenRealease4 ()public onlyOwner {
-       require(mintingFinished) && (ditributed_round3) && (!distributed_round4);
+       require(mintingFinished) && (distributed_round3) && (!distributed_round4);
     	 require (now >= period4);
-    	 address(this).transfer(teamAddress,tokensTorelease);
+    	 token.transfer(teamAddress,tokensTorelease);
     	 releasedTokens=releasedTokens.add(tokensTorelease);
     	 distributed_round4=true;
      }
