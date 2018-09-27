@@ -12,22 +12,10 @@ contract TOTToken is ERC20, Pausable {
   uint256 public decimals = 18;            //  token digit
 
 
-  // Token distribution, must sumup to 1000
-  uint256 public constant SHARE_PURCHASERS = 75;
-  uint256 public constant SHARE_FOUNDATION = 5;
-  uint256 public constant SHARE_TEAM = 15;
-  uint256 public constant SHARE_BOUNTY = 5;
 
-  // Wallets addresses
-  address public foundationAddress;
-  address public teamAddress;
-  address public bountyAddress;
 
   uint256 private totalSupply_;
-  uint256 public vestedTokens;
-  uint256 public releasedTokens;
 
-  uint256 private startVesting;
 
   uint256 public cap = 20000000 * 10 ** decimals; // Max cap 20.000.000 token
 
@@ -35,8 +23,7 @@ contract TOTToken is ERC20, Pausable {
 
   mapping (address => mapping (address => uint256)) private allowed;
 
-  bool public mintingFinished = false;
-  bool public vestingFinished = false;
+
 
   event Burn(address indexed burner, uint256 value);
   event Mint(address indexed to, uint256 amount);
@@ -47,12 +34,7 @@ contract TOTToken is ERC20, Pausable {
     _;
   }
 
-  constructor(address _foundationAddress, address _teamAddress, address _bountyAddress) public {
-    require(_foundationAddress != address(0) && _teamAddress != address(0) && _bountyAddress != address(0));
-    foundationAddress = _foundationAddress;
-    teamAddress = _teamAddress;
-    bountyAddress = _bountyAddress;
-  }
+
 
   /**
     * @dev Change token name, Owner only.
@@ -70,12 +52,7 @@ contract TOTToken is ERC20, Pausable {
     symbol = _symbol;
   }
 
-  function updateWallets(address _foundation, address _team, address _bounty) public onlyOwner canMint {
-    require(_foundation != address(0) && _team != address(0) && _bounty != address(0));
-    foundationAddress = _foundation;
-    teamAddress = _team;
-    bountyAddress = _bounty;
-  }
+
   /**
     * @dev total number of tokens in existence
   */
@@ -205,30 +182,7 @@ contract TOTToken is ERC20, Pausable {
     return true;
   }
 
-  /**
-   * @dev Function to stop minting new tokens.
-   * @return True if the operation was successful.
-   */
-  function finishMinting() onlyOwner canMint public returns (bool) {
 
-    // before calling this method totalSupply includes only purchased tokens
-    uint256 total = totalSupply_.mul(100).div(SHARE_PURCHASERS); //ignore (totalSupply mod 617) ~= 616e-8,
-
-    uint256 foundationTokens = total.mul(SHARE_FOUNDATION).div(100);
-    uint256 teamTokens = total.mul(SHARE_TEAM).div(100);
-    uint256 bountyTokens = total.mul(SHARE_BOUNTY).div(100);
-    require (balanceOf(foundationAddress) == 0 && balanceOf(address(this)) == 0 && balanceOf(bountyAddress) == 0);
-    mint(foundationAddress, foundationTokens);
-    mint(address(this), teamTokens);
-    mint(bountyAddress, bountyTokens);
-
-    vestedTokens = teamTokens;
-    mintingFinished = true;
-    emit MintFinished();
-
-    startVesting = now;
-    return true;
-  }
 
 
   /**
@@ -247,47 +201,5 @@ contract TOTToken is ERC20, Pausable {
     emit Transfer(burner, address(0), _value);
   }
 
-
-  /**
-    * @dev This is an especial owner-only function to make massive tokens minting.
-    * @param _data is an array of addresses
-    * @param _amount is an array of uint256
-  */
-  function batchMint(address[] _data,uint256[] _amount) public onlyOwner canMint {
-    for (uint i = 0; i < _data.length; i++) {
-	     mint(_data[i],_amount[i]);
-    }
-  }
-
-  function tokensRelease() public onlyOwner {
-    require(mintingFinished && !vestingFinished);
-
-    uint256 period1 = startVesting.add(24 weeks);
-    uint256 period2 = startVesting.add(48 weeks);
-    uint256 period3 = startVesting.add(72 weeks);
-    uint256 period4 = startVesting.add(96 weeks);
-
-    uint256 tokensTorelease = vestedTokens.mul(25).div(100);
-    uint256 withdrawableAmount;
-
-    if(period1 <= now && now < period2){
-      withdrawableAmount = tokensTorelease.sub(releasedTokens);
-      transfer(teamAddress,withdrawableAmount);
-      releasedTokens = withdrawableAmount;
-    } else if(period2 <= now && now < period3){
-      withdrawableAmount = (tokensTorelease.mul(2)).sub(releasedTokens);
-      transfer(teamAddress,withdrawableAmount);
-      releasedTokens = releasedTokens.add(withdrawableAmount);
-    } else if(period3 <= now && now < period4){
-      withdrawableAmount = (tokensTorelease.mul(3)).sub(releasedTokens);
-      transfer(teamAddress,withdrawableAmount);
-      releasedTokens = releasedTokens.add(withdrawableAmount);
-    } else {
-      withdrawableAmount = (tokensTorelease.mul(4)).sub(releasedTokens);
-      transfer(teamAddress,withdrawableAmount);
-      releasedTokens = releasedTokens.add(withdrawableAmount);
-      vestingFinished = true;
-    }
-  }
 
 }
