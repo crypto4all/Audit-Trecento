@@ -36,6 +36,7 @@ contract TOTToken is ERC20, Pausable {
   mapping (address => mapping (address => uint256)) private allowed;
 
   bool public mintingFinished = false;
+  bool public vestingFinished = false;
 
   event Burn(address indexed burner, uint256 value);
   event Mint(address indexed to, uint256 amount);
@@ -259,13 +260,12 @@ contract TOTToken is ERC20, Pausable {
   }
 
   function tokensRelease() public onlyOwner {
-    require(mintingFinished);
-    require(vestedTokens > releasedTokens);
+    require(mintingFinished && !vestingFinished);
 
     uint256 period1 = startVesting.add(24 weeks);
-    uint256 period2 = period1.add(24 weeks);
-    uint256 period3 = period2.add(24 weeks);
-    uint256 period4 = period3.add(24 weeks);
+    uint256 period2 = startVesting.add(48 weeks);
+    uint256 period3 = startVesting.add(72 weeks);
+    uint256 period4 = startVesting.add(96 weeks);
     uint256 tokensTorelease = vestedTokens.mul(25).div(100);
     uint256 withdrawableAmount;
 
@@ -285,6 +285,7 @@ contract TOTToken is ERC20, Pausable {
       withdrawableAmount = (tokensTorelease.mul(4)).sub(releasedTokens);
       address(this).transfer(teamAddress,withdrawableAmount);
       releasedTokens = withdrawableAmount;
+      vestingFinished = true;
     }
   }
 
