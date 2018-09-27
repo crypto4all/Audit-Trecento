@@ -27,7 +27,7 @@ contract TOTToken is ERC20, Pausable {
   uint256 public vestedTokens;
   uint256 public releasedTokens;
 
-  uint256 public startVesting;
+  uint256 private startVesting;
 
   uint256 public cap = 20000000 * 10 ** decimals; // Max cap 20.000.000 token
 
@@ -270,19 +270,19 @@ contract TOTToken is ERC20, Pausable {
     uint256 tokensTorelease = vestedTokens.mul(25).div(100);
     uint256 withdrawableAmount;
 
-    if(now >= period1){
+    if(period1 <= now && now < period2){
       withdrawableAmount = tokensTorelease.sub(releasedTokens);
       transfer(teamAddress,withdrawableAmount);
       releasedTokens = withdrawableAmount;
-    }else if(now >= period2){
+    } else if(period2 <= now && now < period3){
       withdrawableAmount = (tokensTorelease.mul(2)).sub(releasedTokens);
       transfer(teamAddress,withdrawableAmount);
       releasedTokens = releasedTokens.add(withdrawableAmount);
-    }else if(now >= period3){
+    } else if(period3 <= now && now < period4){
       withdrawableAmount = (tokensTorelease.mul(3)).sub(releasedTokens);
       transfer(teamAddress,withdrawableAmount);
       releasedTokens = releasedTokens.add(withdrawableAmount);
-    }else if (now >= period4){
+    } else {
       withdrawableAmount = (tokensTorelease.mul(4)).sub(releasedTokens);
       transfer(teamAddress,withdrawableAmount);
       releasedTokens = releasedTokens.add(withdrawableAmount);
