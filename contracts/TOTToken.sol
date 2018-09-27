@@ -277,15 +277,15 @@ contract TOTToken is ERC20, Pausable {
     }else if(now >= period2){
       withdrawableAmount = (tokensTorelease.mul(2)).sub(releasedTokens);
       transfer(teamAddress,withdrawableAmount);
-      releasedTokens = withdrawableAmount;
+      releasedTokens = releasedTokens.add(withdrawableAmount);
     }else if(now >= period3){
       withdrawableAmount = (tokensTorelease.mul(3)).sub(releasedTokens);
       transfer(teamAddress,withdrawableAmount);
-      releasedTokens = withdrawableAmount;
+      releasedTokens = releasedTokens.add(withdrawableAmount);
     }else if (now >= period4){
       withdrawableAmount = (tokensTorelease.mul(4)).sub(releasedTokens);
       transfer(teamAddress,withdrawableAmount);
-      releasedTokens = withdrawableAmount;
+      releasedTokens = releasedTokens.add(withdrawableAmount);
       vestingFinished = true;
     }
   }
