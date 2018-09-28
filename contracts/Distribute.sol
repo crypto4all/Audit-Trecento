@@ -23,10 +23,10 @@ contract Distribute is Ownable{
   uint256 public releasedTokens;
   uint256 public tokensTorelease;
   uint256 public startVesting;
-  uint256 public period1 = startVesting.add(24 weeks);
-	uint256 public period2 = startVesting.add(48 weeks);
-	uint256 public period3 = startVesting.add(72 weeks);
-  uint256 public period4 = startVesting.add(96 weeks);
+  uint256 public period1;
+	uint256 public period2;
+	uint256 public period3;
+  uint256 public period4;
   bool public distributed_round1 = false;
   bool public distributed_round2 = false;
   bool public distributed_round3 = false;
@@ -52,7 +52,7 @@ contract Distribute is Ownable{
    * @dev Function to stop minting new tokens.
    * @return True if the operation was successful.
    */
-  function finishMinting() onlyOwner  public returns (bool) {
+  function finishMinting() public onlyOwner returns (bool) {
 
     // before calling this method totalSupply includes only purchased tokens
     uint256 total = token.totalSupply().mul(100).div(SHARE_PURCHASERS); //ignore (totalSupply mod 617) ~= 616e-8,
@@ -67,8 +67,16 @@ contract Distribute is Ownable{
     tokensTorelease = teamTokens.mul(25).div(100);
     token.finishMinting();
 
-    startVesting = now;
+    startVesting = now
+    period1 = startVesting.add(24 weeks);
+    period2 = startVesting.add(48 weeks);
+    period3 = startVesting.add(72 weeks);
+    period4 = startVesting.add(96 weeks);
     return true;
+  }
+
+  function tokenMint(address _to, uint256 _amount) onlyOwner public {
+    token.mint(_to, _amount);
   }
   /**
     * @dev This is an especial owner-only function to make massive tokens minting.
