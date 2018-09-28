@@ -21,6 +21,7 @@ contract Distribute is Ownable{
 
   // Versting
   uint256 public releasedTokens;
+  uint256 public tokensTorelease;
   uint256 public startVesting;
   uint256 public period1 = startVesting.add(24 weeks);
 	uint256 public period2 = startVesting.add(48 weeks);
@@ -54,15 +55,15 @@ contract Distribute is Ownable{
   function finishMinting() onlyOwner  public returns (bool) {
 
     // before calling this method totalSupply includes only purchased tokens
-    uint256 total = token.totalSupply_().mul(100).div(SHARE_PURCHASERS); //ignore (totalSupply mod 617) ~= 616e-8,
+    uint256 total = token.totalSupply().mul(100).div(SHARE_PURCHASERS); //ignore (totalSupply mod 617) ~= 616e-8,
 
     uint256 foundationTokens = total.mul(SHARE_FOUNDATION).div(100);
     uint256 teamTokens = total.mul(SHARE_TEAM).div(100);
     uint256 bountyTokens = total.mul(SHARE_BOUNTY).div(100);
     require (token.balanceOf(foundationAddress) == 0 && token.balanceOf(address(this)) == 0 && token.balanceOf(bountyAddress) == 0);
-    mintToken(foundationAddress, foundationTokens);
-    mintToken(address(this), teamTokens);
-    mintToken(bountyAddress, bountyTokens);
+    token.mint(foundationAddress, foundationTokens);
+    token.mint(address(this), teamTokens);
+    token.mint(bountyAddress, bountyTokens);
     tokensTorelease = teamTokens.mul(25).div(100);
     token.finishMinting();
 
@@ -81,11 +82,11 @@ contract Distribute is Ownable{
   }
 
   function pauseToken() public onlyOwner {
-    require(token.pause());
+    token.pause();
   }
 
   function unpauseToken() public onlyOwner {
-    require(token.unpause());
+    token.unpause();
   }
 
     function TeamtokenRealease1 ()public onlyOwner {
