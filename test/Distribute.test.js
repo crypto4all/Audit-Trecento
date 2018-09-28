@@ -95,25 +95,25 @@ contract('Distribute', function ([owner, project, anotherAccount, wallet, user1,
 
       let period1 = await distribute.period1.call();
       await increaseTimeTo(period1);
-      await distribute.TeamtokenRealease1({from : owner});
+      await distribute.TeamtokenRelease1({from : owner});
       let teamBalance = await token.balanceOf(teamAddress);
       assert.equal(teamBalance.valueOf(), TOKENSTORELEASE.valueOf());
 
       let period2 = await distribute.period2.call();
       await increaseTimeTo(period2);
-      await distribute.TeamtokenRealease2({from : owner});
+      await distribute.TeamtokenRelease2({from : owner});
       teamBalance = await token.balanceOf(teamAddress);
       assert.equal(teamBalance.valueOf(), TOKENSTORELEASE.mul(2).valueOf());
 
       let period3 = await distribute.period3.call();
       await increaseTimeTo(period3);
-      await distribute.TeamtokenRealease3({from : owner});
+      await distribute.TeamtokenRelease3({from : owner});
       teamBalance = await token.balanceOf(teamAddress);
       assert.equal(teamBalance.valueOf(), TOKENSTORELEASE.mul(3).valueOf());
 
       let period4 = await distribute.period4.call();
       await increaseTimeTo(period4);
-      await distribute.TeamtokenRealease4({from : owner});
+      await distribute.TeamtokenRelease4({from : owner});
       teamBalance = await token.balanceOf(teamAddress);
       assert.equal(teamBalance.valueOf(), TOKENSTORELEASE.mul(4).valueOf());
 

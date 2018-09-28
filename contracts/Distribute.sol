@@ -94,7 +94,7 @@ contract Distribute is Ownable{
     token.unpause();
   }
 
-    function TeamtokenRealease1 ()public onlyOwner {
+    function TeamtokenRelease1 ()public onlyOwner {
        require(token.mintingFinished() && !distributed_round1);
     	 require (now >= period1);
        token.transfer(teamAddress,tokensTorelease);
@@ -102,24 +102,24 @@ contract Distribute is Ownable{
     	 distributed_round1=true;
     	}
 
-    function TeamtokenRealease2 ()public onlyOwner {
-       require(token.mintingFinished() && distributed_round1 && !distributed_round2);
+    function TeamtokenRelease2 ()public onlyOwner {
+       require(distributed_round1 && !distributed_round2);
     	 require (now >= period2);
     	 token.transfer(teamAddress,tokensTorelease);
     	 releasedTokens=releasedTokens.add(tokensTorelease);
     	 distributed_round2=true;
      }
 
-   function TeamtokenRealease3 ()public onlyOwner {
-       require(token.mintingFinished() && distributed_round2 && !distributed_round3);
+   function TeamtokenRelease3 ()public onlyOwner {
+       require(distributed_round2 && !distributed_round3);
     	 require (now >= period3);
     	 token.transfer(teamAddress,tokensTorelease);
     	 releasedTokens = releasedTokens.add(tokensTorelease);
     	 distributed_round3 = true;
      }
 
-     function TeamtokenRealease4 ()public onlyOwner {
-      require(token.mintingFinished() && distributed_round3 && !distributed_round4);
+     function TeamtokenRelease4 ()public onlyOwner {
+      require(distributed_round3 && !distributed_round4);
       require (now >= period4);
       uint256 balance = token.balanceOf(this);
       token.transfer(teamAddress,balance);
