@@ -76,12 +76,16 @@ contract Distribute is Ownable{
   */
   function batchMint(address[] _data,uint256[] _amount) public onlyOwner {
     for (uint i = 0; i < _data.length; i++) {
-       (_data[i],_amount[i]);
+       token.mint(_data[i],_amount[i]);
     }
   }
 
-  function mintToken(uint256 _tokenAmount) public onlyOwner{
-    require(token.mint(this, _tokenAmount));
+  function pauseToken() public onlyOwner {
+    require(token.pause());
+  }
+
+  function unpauseToken() public onlyOwner {
+    require(token.unpause());
   }
 
     function TeamtokenRealease1 ()public onlyOwner {
