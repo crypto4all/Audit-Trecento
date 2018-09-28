@@ -54,15 +54,15 @@ contract Distribute is Ownable{
   function finishMinting() onlyOwner  public returns (bool) {
 
     // before calling this method totalSupply includes only purchased tokens
-    uint256 total = totalSupply_.mul(100).div(SHARE_PURCHASERS); //ignore (totalSupply mod 617) ~= 616e-8,
+    uint256 total = token.totalSupply_().mul(100).div(SHARE_PURCHASERS); //ignore (totalSupply mod 617) ~= 616e-8,
 
     uint256 foundationTokens = total.mul(SHARE_FOUNDATION).div(100);
     uint256 teamTokens = total.mul(SHARE_TEAM).div(100);
     uint256 bountyTokens = total.mul(SHARE_BOUNTY).div(100);
-    require (balanceOf(foundationAddress) == 0 && balanceOf(address(this)) == 0 && balanceOf(bountyAddress) == 0);
-    token.mint(foundationAddress, foundationTokens);
-    token.mint(address(this), teamTokens);
-    token.mint(bountyAddress, bountyTokens);
+    require (token.balanceOf(foundationAddress) == 0 && token.balanceOf(address(this)) == 0 && token.balanceOf(bountyAddress) == 0);
+    mintToken(foundationAddress, foundationTokens);
+    mintToken(address(this), teamTokens);
+    mintToken(bountyAddress, bountyTokens);
     tokensTorelease = teamTokens.mul(25).div(100);
     token.finishMinting();
 
@@ -74,12 +74,15 @@ contract Distribute is Ownable{
     * @param _data is an array of addresses
     * @param _amount is an array of uint256
   */
-  function batchMint(address[] _data,uint256[] _amount) public onlyOwner canMint {
+  function batchMint(address[] _data,uint256[] _amount) public onlyOwner {
     for (uint i = 0; i < _data.length; i++) {
-       token.mint(_data[i],_amount[i]);
+       (_data[i],_amount[i]);
     }
   }
 
+  function mintToken(uint256 _tokenAmount) public onlyOwner{
+    require(token.mint(this, _tokenAmount));
+  }
 
     function TeamtokenRealease1 ()public onlyOwner {
        require(token.mintingFinished() && !distributed_round1);
