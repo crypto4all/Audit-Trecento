@@ -40,7 +40,7 @@ contract TOTToken is ERC20, Pausable {
     * @dev Change token name, Owner only.
     * @param _name The name of the token.
   */
-  function setName(string _name) onlyOwner public {
+  function setName(string _name)  public onlyOwner {
     name = _name;
   }
 
@@ -48,7 +48,7 @@ contract TOTToken is ERC20, Pausable {
     * @dev Change token symbol, Owner only.
     * @param _symbol The symbol of the token.
   */
-  function setSymbol(string _symbol) onlyOwner public {
+  function setSymbol(string _symbol)  public onlyOwner {
     symbol = _symbol;
   }
 
@@ -171,7 +171,7 @@ contract TOTToken is ERC20, Pausable {
    * @param _amount The amount of tokens to mint.
    * @return A boolean that indicates if the operation was successful.
    */
-  function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
+  function mint(address _to, uint256 _amount)  public onlyOwner canMint returns (bool) {
     require(_amount > 0);
     require(totalSupply_.add(_amount) <= cap);
     require(_to != address(0));
@@ -186,7 +186,7 @@ contract TOTToken is ERC20, Pausable {
  * @dev Function to stop minting new tokens.
  * @return True if the operation was successful.
  */
-function finishMinting() onlyOwner canMint public returns (bool) {
+function finishMinting()  public onlyOwner canMint returns (bool) {
   mintingFinished = true;
   emit MintFinished();
   return true;
